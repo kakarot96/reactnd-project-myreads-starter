@@ -4,12 +4,14 @@ import BookItem from './Book'
 const BookShelf = props => {
     return (
         <div className="bookshelf">
-            <h2 className="bookshelf-title">{props.shelf}</h2>
+            <h2 className="bookshelf-title">{props.shelf?props.shelf.text:null}</h2>
             <div className="bookshelf-books">
                 <ol className="books-grid">
                     {
-                       props.books.map((book) => (
-                            <li key={book.title}><BookItem book={book} /></li>
+                        !props.books.error && props.books.map((book) => (
+                            <li key={book.title}>
+                                <BookItem book={book} {...props}/>
+                            </li>
                         ))
                     }
                 </ol>
@@ -19,8 +21,9 @@ const BookShelf = props => {
 };
 
 BookShelf.propTypes = {
-    shelf:PropTypes.string,
-    books:PropTypes.array
+    shelf:PropTypes.object,
+    books:PropTypes.array.isRequired,
+    changeShelf:PropTypes.func
 };
 
 export default BookShelf;
