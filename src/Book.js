@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 
 const BookItem = props => {
-    const [selected,setSelected] = useState(props.book.shelf)
+    const [selected,setSelected] = useState(props.book.shelf?props.book.shelf:'none')
     return (
         <div className="book">
             <div className="book-top">
@@ -19,14 +19,15 @@ const BookItem = props => {
                 </div>
             </div>
             <div className="book-title">{props.book.title}</div>
-            <div className="book-authors">{props.book.authors && props.book.authors[0]}</div>
+            <div className="book-authors">{props.book.authors && props.book.authors.map((author)=>(<div>
+                {author} </div>))}</div>
         </div>
     );
 };
 
 BookItem.propTypes = {
     book:PropTypes.object.isRequired,
-    shelf:PropTypes.object
+    shelf:PropTypes.string
 };
 
 export default BookItem;

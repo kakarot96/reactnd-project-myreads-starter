@@ -4,12 +4,12 @@ import BookItem from './Book'
 const BookShelf = props => {
     return (
         <div className="bookshelf">
-            <h2 className="bookshelf-title">{props.shelf?props.shelf.text:null}</h2>
+            <h2 className="bookshelf-title">{props.shelf?props.shelf:null}</h2>
             <div className="bookshelf-books">
                 <ol className="books-grid">
                     {
                         !props.books.error && props.books.map((book) => (
-                            <li key={book.title}>
+                            <li key={book.id}>
                                 <BookItem book={book} {...props}/>
                             </li>
                         ))

@@ -9,68 +9,55 @@ import SearchBooks from './SearchBooks'
 class BooksApp extends React.Component {
   state = {
     allBooks:[],
-    currentlyReading:[],
-    wantToRead:[],
-    read:[],
     query:'',
     searchedBooks:[]
   }
   componentDidMount(){
     BooksAPI.getAll().then((allBooks)=>{
-      console.log(allBooks)
-      this.setState({
-        allBooks:allBooks,
-        currentlyReading:allBooks.filter((book) => book.shelf === 'currentlyReading'),
-        wantToRead:allBooks.filter((book) => book.shelf === 'wantToRead'),
-        read:allBooks.filter((book) => book.shelf === 'read'),
+      this.setState({allBooks:allBooks,
       })
+  })}
+  changeShelf=(book,shelf)=>{
+    BooksAPI.update(book, shelf).then((res) => {
+      book.shelf = shelf
+      this.setState(() => ({
+        allBooks: this.state.allBooks.filter((oldBook) => {
+          return oldBook.id !== book.id
+        }).concat([book])
+      }))
     })
-
-    BooksAPI.get("OCFKdl3wEDIC").then((book)=>console.log(book))
   }
   searchBooks=(query)=>{
-    var arr=[]
-
-    BooksAPI.search(query).then((searchedBooks)=>{
-
-      if(searchedBooks && !searchedBooks.error){
-        searchedBooks.map((book)=>{
-          arr.push(BooksAPI.get(book.id).then(book=>book))
+    BooksAPI.search(query).then((searchResult)=>{
+      if(searchResult && searchResult.length>0){
+        searchResult.map(book=>{
+          let currBook = this.state.allBooks.filter((b)=>book.id===b.id)
+          if(currBook.length>0)book.shelf=currBook[0].shelf
+          return book
         })
-        Promise.all(arr).then((books=>{
-          this.setState({
-            searchedBooks:books
-          })
+        this.setState({
+          searchedBooks:searchResult
         })
-          
-        )
-        
       }
       else{
         this.setState({
           searchedBooks:[]
         })
       }
-      
     })
   }
-  changeShelf=(book,shelf)=>{
-    BooksAPI.update(book,shelf).then((allBooks)=>{
-      BooksAPI.getAll().then((books)=>{
-        this.setState({
-        currentlyReading:books.filter((book) => book.shelf === 'currentlyReading'),
-        wantToRead:books.filter((book) => book.shelf === 'wantToRead'),
-        read:books.filter((book) => book.shelf === 'read'),
-        })
-      })
-    })
-  }
+
   clearSearchedBooks=()=>{
     this.setState({
       searchedBooks:[]
     })
   }
   render() {
+    const currentlyReading = this.state.allBooks.filter((book) => book.shelf === 'currentlyReading')
+    const wantToRead = this.state.allBooks.filter((book) => book.shelf === 'wantToRead')
+    const read = this.state.allBooks.filter((book) => book.shelf === 'read')
+    const searchedBooks = this.state.searchedBooks
+
     return (
       <div className="app">
         <Route exact path='/' render={(routerProps)=><div className="list-books">
@@ -79,16 +66,16 @@ class BooksApp extends React.Component {
             </div>
             <div className="list-books-content">
               <div>
-                <BookShelf changeShelf={this.changeShelf} shelf={{text:'Currently Reading',value:'currentlyReading'}} books={this.state.currentlyReading}/>
-                <BookShelf changeShelf={this.changeShelf} shelf={{text:'Want to Read',value:'wantToRead'}} books={this.state.wantToRead}/>
-                <BookShelf changeShelf={this.changeShelf} shelf={{text:'Read',value:'read'}} books={this.state.read}/>
+                <BookShelf changeShelf={this.changeShelf} shelf='Currently Reading' books={currentlyReading}/>
+                <BookShelf changeShelf={this.changeShelf} shelf='Want to Read' books={wantToRead}/>
+                <BookShelf changeShelf={this.changeShelf} shelf='Read' books={read}/>
               </div>
             </div>
             <div className="open-search">
               <button onClick={() => routerProps.history.push('search')}>Add a book</button>
             </div>
           </div>}/>
-        <Route path='/search' render={(routerProps)=><SearchBooks clearSearchedBooks={this.clearSearchedBooks} changeShelf={this.changeShelf} searchBooks={this.searchBooks} allBooks={this.state.searchedBooks} query={this.state.query} {...routerProps}/>}/>
+        <Route path='/search' render={(routerProps)=><SearchBooks clearSearchedBooks={this.clearSearchedBooks} changeShelf={this.changeShelf} searchBooks={this.searchBooks} allBooks={searchedBooks} query={this.state.query} {...routerProps}/>}/>
       </div>
     )
   }
